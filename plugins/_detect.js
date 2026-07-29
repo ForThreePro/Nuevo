@@ -5,7 +5,6 @@ let handler = m => m
 
 handler.before = async function (m, { conn, groupMetadata }) {
     if (!m.messageStubType ||!m.isGroup) return
-
     let chat = global.db.data.chats[m.chat]
     if (!chat?.detect) return
 
@@ -14,78 +13,105 @@ handler.before = async function (m, { conn, groupMetadata }) {
     const group = groupMetadata.subject
 
     let txt = ''
+    let log = ''
 
     switch (m.messageStubType) {
-        case 21: // Cambiar nombre
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ ⚡ *REGISTRO DEL SISTEMA*
+        case WAMessageStubType.GROUP_CHANGE_SUBJECT: // 21
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💻 *REGISTRO DEL SISTEMA*
 │
-│ 📢 *CAMBIO DE NOMBRE*
+│ 📝 *CAMBIO DE NOMBRE*
 │ 👤 *Usuario:* ${usuario}
-│ 📝 *Nuevo:* _${m.messageStubParameters[0]}_
-│ 💻 *Grupo:* ${group}
+│ 🆕 *Nuevo:* _${m.messageStubParameters[0]}_
+│ 🏷️ *Grupo:* ${group}
 │
-│ > *“Sistema renombrado correctamente”* 🤖
-╰─────────────────❒`; break
+│ > *“Protocolo de nombre actualizado”* 🤖
+╰─────────────────❒`
+            log = chalk.yellow(`[DETECT] Nombre cambiado por ${userJid.split('@')[0]} → ${m.messageStubParameters[0]}`)
+            break
 
-        case 22: // Cambiar foto
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ ⚡ *REGISTRO DEL SISTEMA*
+        case WAMessageStubType.GROUP_CHANGE_ICON: // 22
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💻 *REGISTRO DEL SISTEMA*
 │
 │ 📸 *CAMBIO DE FOTO*
 │ 👤 *Usuario:* ${usuario}
-│ 🖼️ *Nueva imagen establecida*
-│ 💻 *Grupo:* ${group}
+│ 🖼️ *Imagen actualizada*
+│ 🏷️ *Grupo:* ${group}
 │
-│ > *“Imagen actualizada en el sistema”* 🤖
-╰─────────────────❒`; break
+│ > *“Identidad visual modificada”* 🤖
+╰─────────────────❒`
+            log = chalk.cyan(`[DETECT] Foto cambiada por ${userJid.split('@')[0]}`)
+            break
 
-        case 23: // Cambiar link
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+        case WAMessageStubType.GROUP_CHANGE_INVITE_LINK: // 23
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 🛡️ *ALERTA DE SEGURIDAD*
 │
 │ 🔗 *LINK RESETEADO*
 │ 👤 *Usuario:* ${usuario}
-│ 💻 *Grupo:* ${group}
+│ 🏷️ *Grupo:* ${group}
 │
 │ > *“Protocolo de enlace modificado”* ⚡
-╰─────────────────❒`; break
+╰─────────────────❒`
+            log = chalk.red(`[DETECT] Link reseteado por ${userJid.split('@')[0]}`)
+            break
 
-        case 25: // Cambiar ajustes
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+        case WAMessageStubType.GROUP_CHANGE_DESCRIPTION: // 24
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💻 *REGISTRO DEL SISTEMA*
+│
+│ 📜 *DESCRIPCIÓN MODIFICADA*
+│ 👤 *Usuario:* ${usuario}
+│ 🏷️ *Grupo:* ${group}
+│
+│ > *“Información del grupo actualizada”* 🤖
+╰─────────────────❒`
+            log = chalk.green(`[DETECT] Descripción cambiada por ${userJid.split('@')[0]}`)
+            break
+
+        case WAMessageStubType.GROUP_CHANGE_ANNOUNCE: // 25
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 🛡️ *AJUSTES MODIFICADOS*
 │
 │ 👤 *Usuario:* ${usuario}
-│ ⚙️ *Permisos:* ${m.messageStubParameters[0] == 'on'? '*SOLO ADMINS* 🔒' : '*TODOS* 🔓'}
-│ 📊 *Edición de info de grupo*
+│ ⚙️ *Modo Edición:* ${m.messageStubParameters[0] == 'on'? '*SOLO ADMINS* 🔒' : '*TODOS* 🔓'}
+│ 🏷️ *Grupo:* ${group}
 │
 │ > *“Permisos del sistema actualizados”* ⚡
-╰─────────────────❒`; break
+╰─────────────────❒`
+            log = chalk.magenta(`[DETECT] Modo edición: ${m.messageStubParameters[0]} por ${userJid.split('@')[0]}`)
+            break
 
-        case 26: // Abrir/Cerrar
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+        case WAMessageStubType.GROUP_CHANGE_RESTRICT: // 26
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 💻 *ESTADO DEL SISTEMA*
 │
 │ 👤 *Usuario:* ${usuario}
-│ 🗣️ *Modo:* ${m.messageStubParameters[0] == 'on'? '*SOLO ADMINS* 🔒' : '*TODOS* 🔓'}
-│ 📢 *Grupo:* ${m.messageStubParameters[0] == 'on'? 'CERRADO' : 'ABIERTO'}
+│ 🗣️ *Mensajes:* ${m.messageStubParameters[0] == 'on'? '*SOLO ADMINS* 🔒' : '*TODOS* 🔓'}
+│ 📢 *Estado:* ${m.messageStubParameters[0] == 'on'? 'CERRADO' : 'ABIERTO'}
 │
-│ > *“Modo de comunicación actualizado”* 🤖
-╰─────────────────❒`; break
+│ > *“Canal de comunicación actualizado”* 🤖
+╰─────────────────❒`
+            log = chalk.blue(`[DETECT] Modo mensajes: ${m.messageStubParameters[0]} por ${userJid.split('@')[0]}`)
+            break
 
-        case 29: // Dar admin
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+        case WAMessageStubType.GROUP_MEMBER_ADD: // 29
+            if (m.messageStubParameters[0] == userJid) return // Ignora si se dio admin a si mismo en add
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 👑 *ASCENSO DE RANGO*
 │
 │ ⚡ *Nuevo Admin:* @${m.messageStubParameters[0].split('@')[0]}
 │ 👤 *Otorgado por:* ${usuario}
-│ 💻 *Rango:* Administrador
+│ 🛡️ *Rango:* Administrador
 │
 │ > *“Acceso de administrador concedido”* ⚡
-╰─────────────────❒`; break
+╰─────────────────❒`
+            log = chalk.greenBright(`[DETECT] Admin dado a ${m.messageStubParameters[0].split('@')[0]} por ${userJid.split('@')[0]}`)
+            break
 
-        case 30: // Quitar admin
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+        case WAMessageStubType.GROUP_MEMBER_REMOVE: // 30
+            txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 📉 *RANGO REVOCADO*
 │
 │ 💥 *Admin removido:* @${m.messageStubParameters[0].split('@')[0]}
@@ -93,15 +119,13 @@ handler.before = async function (m, { conn, groupMetadata }) {
 │ 🗑️ *Permisos eliminados*
 │
 │ > *“Acceso de administrador revocado”* ⚡
-╰─────────────────❒`; break
-
-        // ELIMINADOS: WELCOME / BYE / KICK
-        // case WAMessageStubType.GROUP_PARTICIPANT_ADD:
-        // case WAMessageStubType.GROUP_PARTICIPANT_LEAVE:
-        // case WAMessageStubType.GROUP_PARTICIPANT_REMOVE:
+╰─────────────────❒`
+            log = chalk.redBright(`[DETECT] Admin quitado a ${m.messageStubParameters[0].split('@')[0]} por ${userJid.split('@')[0]}`)
+            break
     }
 
     if (txt) {
+        console.log(log) // Log en consola
         await this.sendMessage(m.chat, {
             text: txt,
             mentions: [userJid,...(m.messageStubParameters?.[0]? [m.messageStubParameters[0]] : [])]
