@@ -1,14 +1,6 @@
-let handler = async (m, { conn, usedPrefix, command, text }) => {
-    let who
-
-    // FORMA 1: Respondiendo a un mensaje
-    if (m.quoted) who = m.quoted.sender
-
-    // FORMA 2: Poniendo número.marry 519876543210
-    else if (text) {
-        let numero = text.replace(/[^0-9]/g, '')
-        if (numero) who = numero + '@s.whatsapp.net'
-    }
+let handler = async (m, { conn, usedPrefix, command }) => {
+    // SOLO AGARRA SI RESPONDES
+    let who = m.quoted? m.quoted.sender : null
 
     const IMG_CASAMIENTO = 'https://files.evogb.win/zu9HrE.jpg'
     const IMG_DIVORCIO = 'https://files.evogb.win/bftECK.jpg'
@@ -16,7 +8,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     global.db.data.users[m.sender] = global.db.data.users[m.sender] || { pareja: null }
 
     if (command == 'marry' || command == 'casar') {
-        if (!who) return m.reply(`💍 *Usos que sí funcionan:*\n1. *Responde* al mensaje de la persona +.marry\n2. *.marry 519876543210* pon el número\n\n*Nota:* En tu bot.marry @usuario no jala`)
+        if (!who) return m.reply(`💍 *USO CORRECTO:*\n1. Ve al mensaje de la persona\n2. Dale *Responder*\n3. Escribe *.marry*\n\n*Tu bot no detecta @menciones*`)
         if (who === m.sender) return m.reply('🙄 *No te puedes casar contigo mismo xd*')
 
         global.db.data.users[who] = global.db.data.users[who] || { pareja: null }
@@ -36,23 +28,31 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
         user.pareja = who
         target.pareja = m.sender
 
-        let fecha = new Date().toLocaleDateString('es-PE')
+        let fecha = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
         let name1 = await conn.getName(m.sender)
         let name2 = await conn.getName(who)
 
         let caption = `ᯇ 💒 𝗠𝗔𝗧𝗥𝗜𝗠𝗢𝗡𝗜𝗢 💒 ୧
 
+⤷ ┇ 𝗘𝗟 𝗔𝗠𝗢𝗥 𝗩𝗘𝗡𝗖𝗜𝗢 ：✿ 。
+
 ꒰ ◞⁺⊹ ．💖 *¡SE CASARON!* 💖
 
 @${name1} ❤️ @${name2}
 
+──愛 *𝗩𝗢𝗧𝗢𝗦* ╏ 💌
+"Prometo amarte en las buenas, en las malas,
+y en los días que el wifi falle"
+
+──愛 *𝗗𝗘𝗧𝗔𝗟𝗘𝗦* ╏ 💍
 📅 𝗙𝗲𝗰𝗵𝗮: ${fecha}
+
 > *¡Que vivan los novios!* 🎉💕`
 
         return conn.sendMessage(m.chat, {
             image: { url: IMG_CASAMIENTO },
             caption: caption,
-            mentions: [m.sender, who]
+            mentions: [m.sender, who] // AQUI FUERZA EL @AZUL
         }, { quoted: m })
     }
 
