@@ -4,11 +4,45 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 
+let handler = async (m, { conn, usedPrefix, args, isAdmin }) => {
+    if (!m.isGroup) return m.reply('⚡ Este comando solo funciona en grupos')
+    if (!isAdmin) return global.dfail('admin', m, conn)
+
+    if (!args[0]) return m.reply(`╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 🛡️ *CONFIG WELCOME*
+│
+│ 📌 *USO:* ${usedPrefix}welcome on
+│ 📌 *USO:* ${usedPrefix}welcome off
+│
+│ *Estado:* ${global.db.data.chats[m.chat].welcome? 'ACTIVADO ✅' : 'DESACTIVADO ❌'}
+╰─────────────────❒`)
+
+    let isEnable = /true|enable|(turn)?on|1/i.test(args[0])
+    global.db.data.chats[m.chat].welcome = isEnable
+
+    let estado = isEnable? 'ACTIVADO ⚡' : 'DESACTIVADO ❌'
+    m.reply(`╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💻 *SISTEMA ACTUALIZADO*
+│
+│ 🤖 *Modulo:* Bienvenida
+│ 📊 *Estado:* ${estado}
+│ 👤 *Admin:* @${m.sender.split('@')[0]}
+│
+│ > *“Configuracion guardada”*
+╰─────────────────❒`, null, { mentions: [m.sender] })
+}
+
+handler.help = ['welcome on/off']
+handler.tags = ['config']
+handler.command = ['welcome']
+handler.group = true
+handler.admin = true
+
 export async function before(m, { conn }) {
   if (!m.messageStubType ||!m.isGroup) return true;
 
   const chat = global.db?.data?.chats?.[m.chat];
-  if (!chat) return true;
+  if (!chat || chat.welcome === false) return true;
 
   try {
     const groupMetadata = await conn.groupMetadata(m.chat).catch(() => null);
@@ -17,7 +51,6 @@ export async function before(m, { conn }) {
     let userJid = m.messageStubParameters?.[0];
     if (!userJid) return true;
 
-    // [FIX @lid]
     let user = userJid;
     if (userJid.endsWith('@lid')) {
       try {
@@ -30,28 +63,32 @@ export async function before(m, { conn }) {
     const groupName = groupMetadata.subject || 'Cyber System';
     const groupMembers = groupMetadata.participants.length;
 
-    // [FIX ANTI-CRASH] FOTO CON TRY-CATCH DOBLE
+    // [FIX NUEVO] PRIORIDAD: FOTO USER > FOTO GRUPO > LOGO
     let imgBuffer = null;
     try {
-      let ppUrl = await conn.profilePictureUrl(user, 'image').catch(() => null);
-      if (ppUrl) {
-        let res = await fetch(ppUrl, { timeout: 5000 }).catch(() => null); // timeout 5s
-        if (res && res.ok) {
-          let buf = await res.arrayBuffer().catch(() => null);
-          if (buf) imgBuffer = Buffer.from(buf);
+      // 1. INTENTAR FOTO DEL USUARIO
+      let ppUser = await conn.profilePictureUrl(user, 'image').catch(() => null);
+      if (ppUser) {
+        let res = await fetch(ppUser, { timeout: 5000 }).catch(() => null);
+        if (res && res.ok) imgBuffer = Buffer.from(await res.arrayBuffer());
+      }
+
+      // 2. SI NO TIENE, INTENTAR FOTO DEL GRUPO
+      if (!imgBuffer) {
+        let ppGroup = await conn.profilePictureUrl(m.chat, 'image').catch(() => null);
+        if (ppGroup) {
+          let res = await fetch(ppGroup, { timeout: 5000 }).catch(() => null);
+          if (res && res.ok) imgBuffer = Buffer.from(await res.arrayBuffer());
         }
       }
-    } catch {}
 
-    // [SI FALLA = LOGO DEFAULT]
-    if (!imgBuffer) {
-      try {
+      // 3. SI NO HAY, LOGO DEFAULT
+      if (!imgBuffer) {
         let res = await fetch('https://files.evogb.win/wX15Ie.jpg', { timeout: 5000 });
-        let buf = await res.arrayBuffer();
-        imgBuffer = Buffer.from(buf);
-      } catch {
-        imgBuffer = null; // si falla todo, mandamos solo texto
+        imgBuffer = Buffer.from(await res.arrayBuffer());
       }
+    } catch {
+      imgBuffer = null;
     }
 
     let text = '', audioFile = '';
@@ -99,14 +136,12 @@ export async function before(m, { conn }) {
       default: return true;
     }
 
-    // ENVIAR: Si hay imagen manda imagen, si no solo texto
     if(imgBuffer){
       await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [user] }).catch(() => {});
     } else {
       await conn.sendMessage(m.chat, { text: text, mentions: [user] }).catch(() => {});
     }
 
-    // ENVIAR AUDIO
     const audioPath = path.resolve(audioFile);
     if (fs.existsSync(audioPath)) {
       await new Promise(r => setTimeout(r, 1500));
@@ -115,7 +150,6 @@ export async function before(m, { conn }) {
         mimetype: 'audio/mpeg',
         ptt: false
       }).catch(() => {});
-      console.log(chalk.green(`[WELCOME] ✅ ${audioFile}`));
     }
 
   } catch (e) {
@@ -124,4 +158,4 @@ export async function before(m, { conn }) {
   return true;
 }
 
-export const disabled = false;
+export default handler
