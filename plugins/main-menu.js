@@ -26,30 +26,29 @@ let tags = {
 
 const defaultMenu = {
   before: `
-╭━━━〔 💜 *AI HOSHINO* 💜 〕━━━╮
+╭─────「 ⚡ 」
 │
-│ 🌸 *Hola %name*
-│ 💫 %greeting
+│ *Hola %name*
+│ %greeting
 │
-│ 📊 *ESTADO*
+│ 📊 *Estado*
 │ ├─ ⚡ Modo: *Público*
-│ ├─ 🔗 Baileys: *MD v6.7.14*
+│ ├─ 🔗 Baileys: *MD v6*
 │ ├─ ⏰ Activo: *%uptime*
 │ ├─ 👥 Users: *%totalreg*
-│ └─ 📦 Versión: *%version*
-╰━━━━━━━━━━━
+│ └─ 📦 v*%version*
+╰─────────
 %readmore
-╭───「 📜 *LISTA DE COMANDOS* 」───
+╭───「 📜 *Comandos* 」───
 `.trimStart(),
 
-  header: `│ ✧･ﾟ: *%category*:･ﾟ✧`,
-  body: `│ 💠 %cmd %islimit %isPremium`,
-  footer: `╰─────────────────────\n`,
+  header: `│ ◈ *%category* ◈`,
+  body: `│ › %cmd %islimit %isPremium`,
+  footer: `╰────────────\n`,
 
   after: `
-╰━━━〔 💖 *Gracias por usar Ai Hoshino* 💖 〕━━━╯
+╰─────────
 > ${textbot}
-> © 2026 Starlights Team
 `.trim(),
 }
 
@@ -88,17 +87,17 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     // OCULTAR CATEGORIAS VACIAS
     let _text = [
       before,
-     ...Object.keys(tags).map(tag => {
+    ...Object.keys(tags).map(tag => {
         let cmds = help.filter(menu => menu.tags && menu.tags.includes(tag) && menu.help)
-        if (cmds.length === 0) return '' // Si no hay comandos, no mostrar
+        if (cmds.length === 0) return ''
 
         return header.replace(/%category/g, tags[tag]) + '\n' + [
-         ...cmds.map(menu => {
+        ...cmds.map(menu => {
             return menu.help.map(help => {
               return body.replace(/%cmd/g, menu.prefix? help : '%p' + help)
-               .replace(/%islimit/g, menu.limit? '⭐' : '')
-               .replace(/%isPremium/g, menu.premium? '💎' : '')
-               .trim()
+              .replace(/%islimit/g, menu.limit? '⭐' : '')
+              .replace(/%isPremium/g, menu.premium? '💎' : '')
+              .trim()
             }).join('\n')
           }),
           footer
@@ -124,14 +123,14 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     }
     text = text.replace(new RegExp(`%(${Object.keys(replace).sort((a, b) => b.length - a.length).join`|`})`, 'g'), (_, name) => '' + replace[name])
 
-    await m.react('💜')
+    await m.react('⚡')
 
-    // FOTO DEL GRUPO O IMAGEN POR DEFECTO
+    // FOTO DEL GRUPO O DEFAULT
     let pp
     try {
       pp = await conn.profilePictureUrl(m.chat, 'image')
     } catch {
-      pp = 'https://telegra.ph/file/4c3e4b782c82511b3874d.jpg' // Foto Hoshino default
+      pp = 'https://telegra.ph/file/4c3e4b782c82511b3874d.jpg' // pon aqui una img masculina si quieres
     }
 
     await conn.sendMessage(m.chat, {
@@ -143,7 +142,6 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
   } catch (e) {
     await m.react('✖️')
     console.log(e)
-    throw e
   }
 }
 
@@ -167,8 +165,8 @@ function clockString(ms) {
 var ase = new Date();
 var hour = ase.getHours();
 var greeting = "espero que tengas " + (
-  hour < 5? 'una linda noche 🌙' :
-  hour < 12? 'una linda mañana ✨' :
-  hour < 18? 'una linda tarde 🌇' :
-  'una linda noche 🌃'
+  hour < 5? 'una buena noche 🌙' :
+  hour < 12? 'una buena mañana ✨' :
+  hour < 18? 'una buena tarde 🌇' :
+  'una buena noche 🌃'
 );
