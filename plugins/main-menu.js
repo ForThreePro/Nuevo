@@ -148,7 +148,7 @@ throw e
 handler.help = ['menu']
 handler.tags = ['main']
 handler.command = ['menu', 'help', 'menú'] 
-handler.register = true 
+handler.register = false
 
 export default handler
 
