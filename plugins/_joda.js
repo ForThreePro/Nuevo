@@ -11,7 +11,6 @@ let handler = async (m, { conn, args, participants, command }) => {
     let name = await conn.getName(user) || 'Usuario'
     let porcentaje = Math.floor(Math.random() * 101)
 
-    // BASE DE FRASES
     let frases = {
         gay: [`confirmado por la NASA 🏳️‍🌈`, `le gusta la ñonga`, `más gay que una licuadora`],
         lesbiana: [`camionera nivel dios 🚛`, `team Rosalía`, `se le nota a kilómetros`],
@@ -59,9 +58,12 @@ let handler = async (m, { conn, args, participants, command }) => {
     let listaFrases = frases[command] || [`confirmado al ${porcentaje}%`]
     let fraseRandom = listaFrases[Math.floor(Math.random() * listaFrases.length)]
 
-    let texto = `*${command.toUpperCase()}*\n\n@${name.split('@')[0]} es *${porcentaje}%* ${command.toUpperCase()}\n> _${fraseRandom}_`
+    let texto = `*${command.toUpperCase()}*\n\n@${name} es *${porcentaje}%* ${command.toUpperCase()}\n> _${fraseRandom}_`
 
-    await conn.reply(m.chat, texto, m, { mentions: [user] })
+    await conn.sendMessage(m.chat, {
+        text: texto,
+        mentions: [user] // ESTO HACE QUE SALGA AZUL Y LE LLEGUE NOTI
+    }, { quoted: m })
 }
 
 handler.help = ['gay', 'lesbiana', 'pajero', 'puto', 'burro', 'chivo', 'choro', 'cachero', 'tragon', 'fresa', 'pipero', 'muerto', 'bamba', 'yapa', 'caña', 'pata', 'floro', 'gil', 'chibolo', 'viejo', 'grasa', 'pituco', 'sapo', 'pavo', 'trome', 'reina', 'king', 'zombie', 'toxica', 'simp', 'vago', 'loquito', 'manco', 'rata', 'fiel', 'infiel', 'miamor', 'bellaka', 'brother', 'mentiroso', 'duo', 'chipi', 'feo', 'rica', 'mostro']
