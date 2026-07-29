@@ -26,29 +26,31 @@ let tags = {
 
 const defaultMenu = {
   before: `
-╭─────「 ⚡ 」
+╭─────「 ⚡ CYBER BOT ⚡ 」
 │
 │ *Hola %name*
 │ %greeting
 │
-│ 📊 *Estado*
-│ ├─ ⚡ Modo: *Público*
-│ ├─ 🔗 Baileys: *MD v6*
-│ ├─ ⏰ Activo: *%uptime*
-│ ├─ 👥 Users: *%totalreg*
-│ └─ 📦 v*%version*
-╰─────────
+│ 📊 *Sistema*
+│ ├─ Estado: *Online*
+│ ├─ Baileys: *MD v6.7.14*
+│ ├─ Uptime: *%uptime*
+│ ├─ Usuarios: *%totalreg*
+│ └─ Versión: *v%version*
+╰─────────────────
 %readmore
-╭───「 📜 *Comandos* 」───
+╭───「 📜 *MÓDULOS* 」───
 `.trimStart(),
 
   header: `│ ◈ *%category* ◈`,
   body: `│ › %cmd %islimit %isPremium`,
-  footer: `╰────────────\n`,
+  footer: `╰─────────────────\n`,
 
   after: `
-╰─────────
+╰─────────────────
 > ${textbot}
+>
+> *Powered By* @whois.yallico
 `.trim(),
 }
 
@@ -87,17 +89,17 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     // OCULTAR CATEGORIAS VACIAS
     let _text = [
       before,
-    ...Object.keys(tags).map(tag => {
+   ...Object.keys(tags).map(tag => {
         let cmds = help.filter(menu => menu.tags && menu.tags.includes(tag) && menu.help)
         if (cmds.length === 0) return ''
 
         return header.replace(/%category/g, tags[tag]) + '\n' + [
-        ...cmds.map(menu => {
+       ...cmds.map(menu => {
             return menu.help.map(help => {
               return body.replace(/%cmd/g, menu.prefix? help : '%p' + help)
-              .replace(/%islimit/g, menu.limit? '⭐' : '')
-              .replace(/%isPremium/g, menu.premium? '💎' : '')
-              .trim()
+             .replace(/%islimit/g, menu.limit? '⭐' : '')
+             .replace(/%isPremium/g, menu.premium? '💎' : '')
+             .trim()
             }).join('\n')
           }),
           footer
@@ -125,12 +127,12 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
 
     await m.react('⚡')
 
-    // FOTO DEL GRUPO O DEFAULT
+    // FOTO DEL GRUPO O DEFAULT CYBER
     let pp
     try {
       pp = await conn.profilePictureUrl(m.chat, 'image')
     } catch {
-      pp = 'https://telegra.ph/file/4c3e4b782c82511b3874d.jpg' // pon aqui una img masculina si quieres
+      pp = 'https://telegra.ph/file/4c3e4b782c82511b3874d.jpg' // pon aqui una img cyberpunk
     }
 
     await conn.sendMessage(m.chat, {
