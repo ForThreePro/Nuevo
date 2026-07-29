@@ -6,8 +6,10 @@ import path from 'path';
 export async function before(m, { conn }) {
   try {
     if (!m.messageStubType ||!m.isGroup) return true;
+
+    // [FIX] AHORA SIEMPRE ACTIVO. Ya no revisa chat.bienvenida
     const chat = global.db?.data?.chats?.[m.chat];
-    if (!chat || chat.bienvenida === false) return true;
+    if (!chat) return true; // Si no hay DB del grupo, salir
 
     const groupMetadata = await conn.groupMetadata(m.chat).catch(_ => null);
     if (!groupMetadata) return true;
@@ -26,13 +28,13 @@ export async function before(m, { conn }) {
     const user = `@${userName}`;
 
     // [DATOS DEL GRUPO]
-    const groupName = groupMetadata.subject || 'Mi Sistema';
+    const groupName = groupMetadata.subject || 'Sistema Cyber';
     const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción';
     const groupMembers = groupMetadata.participants.length;
 
-    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [TU LOGO SOLO SI NO TIENE FOTO]
+    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [TU LOGO]
 
-    // [FIX] 1. FOTO DEL USER PRIMERO
+    // [FOTO DEL USER]
     let imgBuffer = null;
     try {
       let ppUrl = await conn.profilePictureUrl(userJid, 'image').catch(_ => null);
@@ -41,7 +43,7 @@ export async function before(m, { conn }) {
       }
     } catch(e){}
 
-    // [FIX] 2. SI NO TIENE FOTO = LOGO
+    // [SI NO TIENE FOTO = LOGO]
     if (!imgBuffer) {
       imgBuffer = await fetch(fixedImageUrl).then(res => res.buffer()).catch(_ => null);
     }
@@ -52,79 +54,73 @@ export async function before(m, { conn }) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
       audioFile = './bienvenida.mp3';
       text = chat.customWelcome
- ? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
-        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ ⚡ *NUEVO USUARIO CONECTADO*
+       ? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ⚡ *NUEVO NODO CONECTADO*
 │
-│ 🤖 *Bienvenido:* ${user}
-│ ⚡ *Se ha conectado al sistema*
-│
+│ 🤖 *Usuario:* ${user}
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Usuarios:* ${groupMembers}
-│ 📜 *Descripción:* ${groupDesc}
+│ 👥 *Total Nodos:* ${groupMembers}
+│ 📜 *Protocolo:* ${groupDesc}
 │
-│ > *“Nuevo nodo agregado al sistema”*
+│ > *“Bienvenido al sistema”* 🤖
 ╰─────────────────❒`.trim();
 
     } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
       audioFile = './despedida.mp3';
       text = chat.customBye
- ? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
-        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 💨 *DESCONEXIÓN REGISTRADA*
+       ? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💨 *NODO DESCONECTADO*
 │
-│ 🌫️ *Se desconectó:* ${user}
-│ ⚡ *Nodo fuera de línea*
-│
+│ 🌫️ *Usuario:* ${user}
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Quedan:* ${groupMembers}
-│ 📜 *Motivo:* Desconexión voluntaria
+│ 👥 *Nodos Activos:* ${groupMembers}
 │
-│ > *“Nodo desconectado del sistema”*
+│ > *“Conexión cerrada”* ⚡
 ╰─────────────────❒`.trim();
 
     } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       audioFile = './kick.mp3';
       text = chat.customKick
- ? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
-        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 🚮 *EXPULSIÓN EJECUTADA*
+       ? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 🚮 *PROTOCOLO DE EXPULSIÓN*
 │
-│ 💣 *Eliminado:* ${user}
-│ ⚡ *Protocolo de seguridad aplicado*
-│
+│ 💣 *Usuario:* ${user}
+│ 🛡️ *Motivo:* Violación de seguridad
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Quedan:* ${groupMembers}
-│ 📜 *Motivo:* Violó protocolos del sistema
+│ 👥 *Nodos Activos:* ${groupMembers}
 │
-│ > *“Acceso denegado por violación”*
+│ > *“Acceso revocado”* ⚡
 ╰─────────────────❒`.trim();
     } else return true;
 
-    // 1. MENSAJE 1: IMAGEN + TEXTO PRO
+    // [MENSAJE 1: IMAGEN + TEXTO]
     if(imgBuffer){
       await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [userJid] });
     } else {
       await conn.sendMessage(m.chat, { text: text, mentions: [userJid] });
     }
 
-    // 2. MENSAJE 2: AUDIO CON BARRA
+    // [MENSAJE 2: AUDIO]
     const audioPath = path.resolve(audioFile);
     if (fs.existsSync(audioPath)) {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 1500)); // delay 1.5s
       const audioBuffer = fs.readFileSync(audioPath);
       await conn.sendMessage(m.chat, {
         audio: audioBuffer,
         mimetype: 'audio/mpeg',
-        ptt: false
+        ptt: false,
+        fileName: path.basename(audioFile)
       });
-      console.log(`[WELCOME] ✅ Enviado: ${audioFile}`);
+      console.log(chalk.green(`[WELCOME] ✅ Enviado: ${audioFile}`));
     } else {
-      console.log(`[WELCOME] ❌ No existe: ${audioPath}`);
+      console.log(chalk.red(`[WELCOME] ❌ No existe: ${audioPath}`));
     }
 
   } catch (error) {
-    console.error('❌ Error en welcome:', error);
+    console.error(chalk.red('❌ Error en welcome:'), error);
   }
 }
 
