@@ -26,29 +26,30 @@ let tags = {
 
 const defaultMenu = {
   before: `
-╭───「 ✰ *AI HOSHINO* ✰ 」
-│ 🌟 *Hola %name*
-│ 💬 %greeting
+╭━━━〔 💜 *AI HOSHINO* 💜 〕━━━╮
 │
-│ 📌 *ESTADO DEL BOT*
-│ ├─ Modo: *Público*
-│ ├─ Baileys: *Multi Device v6*
-│ ├─ Tiempo: *%uptime*
-│ ├─ Usuarios: *%totalreg*
-│ └─ Versión: *%version*
-╰───────────────
+│ 🌸 *Hola %name*
+│ 💫 %greeting
+│
+│ 📊 *ESTADO*
+│ ├─ ⚡ Modo: *Público*
+│ ├─ 🔗 Baileys: *MD v6.7.14*
+│ ├─ ⏰ Activo: *%uptime*
+│ ├─ 👥 Users: *%totalreg*
+│ └─ 📦 Versión: *%version*
+╰━━━━━━━━━━━
 %readmore
-╭───「 *MENÚ PRINCIPAL* 」
+╭───「 📜 *LISTA DE COMANDOS* 」───
 `.trimStart(),
 
-  header: `│ ✦ *%category* ✦`,
-  body: `│ ❄️ %cmd %islimit %isPremium`,
-  footer: `╰─────────────────\n`,
+  header: `│ ✧･ﾟ: *%category*:･ﾟ✧`,
+  body: `│ 💠 %cmd %islimit %isPremium`,
+  footer: `╰─────────────────────\n`,
 
   after: `
+╰━━━〔 💖 *Gracias por usar Ai Hoshino* 💖 〕━━━╯
 > ${textbot}
->
-> © 2026 Starlights Team | By Irokz Dal
+> © 2026 Starlights Team
 `.trim(),
 }
 
@@ -84,21 +85,25 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     let footer = conn.menu.footer || defaultMenu.footer
     let after = conn.menu.after || defaultMenu.after
 
+    // AQUI OCULTA CATEGORIAS VACIAS
     let _text = [
       before,
-     ...Object.keys(tags).map(tag => {
+    ...Object.keys(tags).map(tag => {
+        let cmds = help.filter(menu => menu.tags && menu.tags.includes(tag) && menu.help)
+        if (cmds.length === 0) return '' // Si no hay comandos, no mostrar
+
         return header.replace(/%category/g, tags[tag]) + '\n' + [
-         ...help.filter(menu => menu.tags && menu.tags.includes(tag) && menu.help).map(menu => {
+        ...cmds.map(menu => {
             return menu.help.map(help => {
               return body.replace(/%cmd/g, menu.prefix? help : '%p' + help)
-               .replace(/%islimit/g, menu.limit? '⭐' : '')
-               .replace(/%isPremium/g, menu.premium? '💎' : '')
-               .trim()
+              .replace(/%islimit/g, menu.limit? '⭐' : '')
+              .replace(/%isPremium/g, menu.premium? '💎' : '')
+              .trim()
             }).join('\n')
           }),
           footer
         ].join('\n')
-      }),
+      }).filter(v => v!== ''),
       after
     ].join('\n')
 
@@ -119,10 +124,9 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     }
     text = text.replace(new RegExp(`%(${Object.keys(replace).sort((a, b) => b.length - a.length).join`|`})`, 'g'), (_, name) => '' + replace[name])
 
-    let img = 'https://telegra.ph/file/4c3e4b782c82511b3874d.mp4' // gif de hoshino
-    await m.react('⭐')
+    let img = 'https://telegra.ph/file/4c3e4b782c82511b3874d.mp4' // Gif Hoshino
+    await m.react('💜')
 
-    // Menu con video/gif
     await conn.sendMessage(m.chat, {
       video: { url: img },
       gifPlayback: true,
