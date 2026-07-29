@@ -21,9 +21,9 @@ global.prems = []
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
 global.packname = ``
-global.author = '{\n "bot": {\n   "name": "Ai Hoshino",\n     "author": "Irokz Dal ダーク",\n   "status_bot": "active"\n }\n}'
+global.author = '{\n "bot": {\n   "name": "Ai Hoshino",\n     "author": "Whois Yallico ダーク",\n   "status_bot": "active"\n }\n}'
 global.wait = '🐢 *Aɢᴜᴀʀᴅᴇ ᴜɴ ᴍᴏᴍᴇɴᴛᴏ, sᴏʏ ʟᴇɴᴛᴀ... ฅ^•ﻌ•^ฅ*'
-global.botname = '✯ Ai Hoshino - MD ✰'
+global.botname = '✯ Whois ✰'
 global.textbot = `Powered By Starlights Team`
 global.listo = '*Aqui tiene ฅ^•ﻌ•^ฅ*'
 global.namechannel = '【 ✯ Starlights Team - Oficial Chanel ✰ 】'
