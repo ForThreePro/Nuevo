@@ -1,9 +1,6 @@
 let handler = async (m, { conn, usedPrefix, command }) => {
-    // FORMA 1: Mencion
     let who = m.mentionedJid && m.mentionedJid[0]
-    // FORMA 2: Responder
     if (!who && m.quoted) who = m.quoted.sender
-    // FORMA 3: Numero
     if (!who && m.text) {
         let num = m.text.replace(command, '').trim()
         if (num) who = num.replace(/[^0-9]/g, '') + '@s.whatsapp.net'
@@ -18,12 +15,12 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         return conn.sendMessage(chat, {
             image: { url: url },
             caption: caption,
-            mentions: mentions
+            mentions: mentions // <- ESTO HACE QUE SALGA AZUL
         }, { quoted: m })
     }
 
     if (command == 'marry' || command == 'casar') {
-        if (!who) return m.reply(`💍 *Uso:* ${usedPrefix}marry @usuario\n*Etiqueta a alguien para proponerle*\n*Ejemplo:*.marry @Juan`)
+        if (!who) return m.reply(`💍 *Uso:* ${usedPrefix}marry @usuario\n*Etiqueta a alguien para proponerle*`)
         if (who === m.sender) return m.reply('🙄 *No te puedes casar contigo mismo xd*')
 
         global.db.data.users[who] = global.db.data.users[who] || { pareja: null }
@@ -32,10 +29,10 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
         if (user.pareja) {
             let ex = await conn.getName(user.pareja) || user.pareja.split('@')[0]
-            return m.reply(`💍 *Ya estás casado con @${ex}*\n*Usa ${usedPrefix}divorcio primero*`, null, { mentions: [user.pareja] })
+            return m.reply(`💍 *Ya estás casado con @${ex}*`, null, { mentions: [user.pareja] })
         }
         if (target.pareja) {
-            let nameTarget = await conn.getName(who)
+            let nameTarget = await conn.getName(who) || who.split('@')[0]
             let ex2 = await conn.getName(target.pareja) || target.pareja.split('@')[0]
             return m.reply(`💔 *@${nameTarget} ya tiene pareja con @${ex2}*`, null, { mentions: [who, target.pareja] })
         }
@@ -44,9 +41,10 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         target.pareja = m.sender
 
         let fecha = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
-        let name1 = await conn.getName(m.sender)
-        let name2 = await conn.getName(who)
+        let name1 = await conn.getName(m.sender) || m.sender.split('@')[0]
+        let name2 = await conn.getName(who) || who.split('@')[0]
 
+        // IMPORTANTE: en el caption ponemos @ + nombre y en mentions pasamos los jid
         let caption = `ᯇ 💒 𝗠𝗔𝗧𝗥𝗜𝗠𝗢𝗡𝗜𝗢 💒 ୧
 
 ⤷ ┇ 𝗘𝗟 𝗔𝗠𝗢𝗥 𝗩𝗘𝗡𝗖𝗜𝗢 ：✿ 。
@@ -65,7 +63,7 @@ y en los días que el wifi falle"
 
 > *¡Que vivan los novios!* 🎉💕`
 
-        return sendMedia(m.chat, IMG_CASAMIENTO, caption, [m.sender, who])
+        return sendMedia(m.chat, IMG_CASAMIENTO, caption, [m.sender, who]) // <- AQUI VAN LOS JID
     }
 
     if (command == 'divorcio' || command == 'divorce') {
@@ -76,8 +74,8 @@ y en los días que el wifi falle"
         user.pareja = null
         global.db.data.users[pareja].pareja = null
 
-        let name1 = await conn.getName(m.sender)
-        let name2 = await conn.getName(pareja)
+        let name1 = await conn.getName(m.sender) || m.sender.split('@')[0]
+        let name2 = await conn.getName(pareja) || pareja.split('@')[0]
 
         let caption = `ᯇ 💔 𝗗𝗜𝗩𝗢𝗥𝗖𝗜𝗢 💔 ୧
 
