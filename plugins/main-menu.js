@@ -48,8 +48,6 @@ const defaultMenu = {
 
   after: `
 ╰─────────────────
-> ${textbot}
->
 > *Powered By* @whois.yallico
 `.trim(),
 }
