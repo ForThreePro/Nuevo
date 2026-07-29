@@ -1,73 +1,112 @@
-import fetch from 'node-fetch'
-import fs from 'fs'
 import chalk from 'chalk'
+import { WAMessageStubType } from '@whiskeysockets/baileys'
 
-export async function groupParticipantsUpdate(conn, { id, participants, action }) {
-    let chat = global.db.data.chats[id]
-    if (!chat?.bienvenida) return // Si esta apagado, sale
+let handler = m => m
 
-    try {
-        let metadata = await conn.groupMetadata(id)
-        let groupName = metadata.subject
-        let total = metadata.participants.length
+handler.before = async function (m, { conn, groupMetadata }) {
+    if (!m.messageStubType ||!m.isGroup) return
 
-        for (let user of participants) {
-            let tag = '@' + user.split('@')[0]
+    let chat = global.db.data.chats[m.chat]
+    if (!chat?.detect) return
 
-            // 1. SACAR FOTO: USER > GRUPO > DEFAULT
-            let pp
-            try { pp = await conn.profilePictureUrl(user, 'image') }
-            catch {
-                try { pp = await conn.profilePictureUrl(id, 'image') }
-                catch { pp = 'https://files.evogb.win/wX15Ie.jpg' }
-            }
+    const userJid = m.sender
+    const usuario = `@${userJid.split('@')[0]}`
+    const group = groupMetadata.subject
 
-            let txt = '', audio = ''
+    let txt = ''
 
-            if (action == 'add') { // ENTRA
-                audio = './bienvenida.mp3'
-                txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ ⚡ *NUEVO NODO CONECTADO*
+    switch (m.messageStubType) {
+        case 21: // Cambiar nombre
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ⚡ *REGISTRO DEL SISTEMA*
 │
-│ 🤖 *Usuario:* ${tag}
-│ 💻 *Sistema:* ${groupName}
-│ 👥 *Nodos:* ${total}
+│ 📢 *CAMBIO DE NOMBRE*
+│ 👤 *Usuario:* ${usuario}
+│ 📝 *Nuevo:* _${m.messageStubParameters[0]}_
+│ 💻 *Grupo:* ${group}
 │
-│ > *“Bienvenido al sistema”* 🤖
-╰─────────────────❒`
-            }
-            if (action == 'leave') { // SALE SOLO
-                audio = './despedida.mp3'
-                txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 💨 *NODO DESCONECTADO*
-│
-│ 🌫️ *Usuario:* ${tag}
-│ 💻 *Sistema:* ${groupName}
-│ 👥 *Nodos:* ${total}
-│
-│ > *“Conexión cerrada”* ⚡
-╰─────────────────❒`
-            }
-            if (action == 'remove') { // LO SACAN
-                audio = './kick.mp3'
-                txt = `╭─❒ *『 ⚡ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 🚮 *PROTOCOLO DE EXPULSIÓN*
-│
-│ 💣 *Usuario:* ${tag}
-│ 🛡️ *Sistema:* ${groupName}
-│
-│ > *“Acceso revocado”* ⚡
-╰─────────────────❒`
-            }
+│ > *“Sistema renombrado correctamente”* 🤖
+╰─────────────────❒`; break
 
-            // ENVIAR IMAGEN + TEXTO
-            await conn.sendMessage(id, { image: { url: pp }, caption: txt, mentions: [user] })
+        case 22: // Cambiar foto
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ⚡ *REGISTRO DEL SISTEMA*
+│
+│ 📸 *CAMBIO DE FOTO*
+│ 👤 *Usuario:* ${usuario}
+│ 🖼️ *Nueva imagen establecida*
+│ 💻 *Grupo:* ${group}
+│
+│ > *“Imagen actualizada en el sistema”* 🤖
+╰─────────────────❒`; break
 
-            // ENVIAR AUDIO 1 SEG DESPUES
-            if (fs.existsSync(audio)) {
-                await new Promise(r => setTimeout(r, 1000))
-                await conn.sendMessage(id, { audio: fs.readFileSync(audio), mimetype: 'audio/mpeg', ptt: false })
-            }
-        }
-    } catch(e) { console.log(chalk.red(e)) }
+        case 23: // Cambiar link
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 🛡️ *ALERTA DE SEGURIDAD*
+│
+│ 🔗 *LINK RESETEADO*
+│ 👤 *Usuario:* ${usuario}
+│ 💻 *Grupo:* ${group}
+│
+│ > *“Protocolo de enlace modificado”* ⚡
+╰─────────────────❒`; break
+
+        case 25: // Cambiar ajustes
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 🛡️ *AJUSTES MODIFICADOS*
+│
+│ 👤 *Usuario:* ${usuario}
+│ ⚙️ *Permisos:* ${m.messageStubParameters[0] == 'on'? '*SOLO ADMINS* 🔒' : '*TODOS* 🔓'}
+│ 📊 *Edición de info de grupo*
+│
+│ > *“Permisos del sistema actualizados”* ⚡
+╰─────────────────❒`; break
+
+        case 26: // Abrir/Cerrar
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💻 *ESTADO DEL SISTEMA*
+│
+│ 👤 *Usuario:* ${usuario}
+│ 🗣️ *Modo:* ${m.messageStubParameters[0] == 'on'? '*SOLO ADMINS* 🔒' : '*TODOS* 🔓'}
+│ 📢 *Grupo:* ${m.messageStubParameters[0] == 'on'? 'CERRADO' : 'ABIERTO'}
+│
+│ > *“Modo de comunicación actualizado”* 🤖
+╰─────────────────❒`; break
+
+        case 29: // Dar admin
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 👑 *ASCENSO DE RANGO*
+│
+│ ⚡ *Nuevo Admin:* @${m.messageStubParameters[0].split('@')[0]}
+│ 👤 *Otorgado por:* ${usuario}
+│ 💻 *Rango:* Administrador
+│
+│ > *“Acceso de administrador concedido”* ⚡
+╰─────────────────❒`; break
+
+        case 30: // Quitar admin
+            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 📉 *RANGO REVOCADO*
+│
+│ 💥 *Admin removido:* @${m.messageStubParameters[0].split('@')[0]}
+│ 👤 *Ejecutado por:* ${usuario}
+│ 🗑️ *Permisos eliminados*
+│
+│ > *“Acceso de administrador revocado”* ⚡
+╰─────────────────❒`; break
+
+        // ELIMINADOS: WELCOME / BYE / KICK
+        // case WAMessageStubType.GROUP_PARTICIPANT_ADD:
+        // case WAMessageStubType.GROUP_PARTICIPANT_LEAVE:
+        // case WAMessageStubType.GROUP_PARTICIPANT_REMOVE:
+    }
+
+    if (txt) {
+        await this.sendMessage(m.chat, {
+            text: txt,
+            mentions: [userJid,...(m.messageStubParameters?.[0]? [m.messageStubParameters[0]] : [])]
+        })
+    }
 }
+
+export default handler
