@@ -85,20 +85,20 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     let footer = conn.menu.footer || defaultMenu.footer
     let after = conn.menu.after || defaultMenu.after
 
-    // AQUI OCULTA CATEGORIAS VACIAS
+    // OCULTAR CATEGORIAS VACIAS
     let _text = [
       before,
-    ...Object.keys(tags).map(tag => {
+     ...Object.keys(tags).map(tag => {
         let cmds = help.filter(menu => menu.tags && menu.tags.includes(tag) && menu.help)
         if (cmds.length === 0) return '' // Si no hay comandos, no mostrar
 
         return header.replace(/%category/g, tags[tag]) + '\n' + [
-        ...cmds.map(menu => {
+         ...cmds.map(menu => {
             return menu.help.map(help => {
               return body.replace(/%cmd/g, menu.prefix? help : '%p' + help)
-              .replace(/%islimit/g, menu.limit? '⭐' : '')
-              .replace(/%isPremium/g, menu.premium? '💎' : '')
-              .trim()
+               .replace(/%islimit/g, menu.limit? '⭐' : '')
+               .replace(/%isPremium/g, menu.premium? '💎' : '')
+               .trim()
             }).join('\n')
           }),
           footer
@@ -124,12 +124,18 @@ let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
     }
     text = text.replace(new RegExp(`%(${Object.keys(replace).sort((a, b) => b.length - a.length).join`|`})`, 'g'), (_, name) => '' + replace[name])
 
-    let img = 'https://telegra.ph/file/4c3e4b782c82511b3874d.mp4' // Gif Hoshino
     await m.react('💜')
 
+    // FOTO DEL GRUPO O IMAGEN POR DEFECTO
+    let pp
+    try {
+      pp = await conn.profilePictureUrl(m.chat, 'image')
+    } catch {
+      pp = 'https://telegra.ph/file/4c3e4b782c82511b3874d.jpg' // Foto Hoshino default
+    }
+
     await conn.sendMessage(m.chat, {
-      video: { url: img },
-      gifPlayback: true,
+      image: { url: pp },
       caption: text.trim(),
       mentions: [m.sender]
     }, { quoted: m })
