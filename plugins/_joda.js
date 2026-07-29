@@ -8,7 +8,7 @@ let handler = async (m, { conn, args, participants, command }) => {
         user = mentioned || (await conn.onWhatsApp(args[0]))[0]?.jid || user
     }
 
-    let name = await conn.getName(user) || 'Usuario'
+    let name = await conn.getName(user) || user.split('@')[0] // <- ARREGLADO
     let porcentaje = Math.floor(Math.random() * 101)
 
     let frases = {
@@ -62,7 +62,7 @@ let handler = async (m, { conn, args, participants, command }) => {
 
     await conn.sendMessage(m.chat, {
         text: texto,
-        mentions: [user] // ESTO HACE QUE SALGA AZUL Y LE LLEGUE NOTI
+        mentions: [user] // ESTO HACE QUE SALGA AZUL
     }, { quoted: m })
 }
 
